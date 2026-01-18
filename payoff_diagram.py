@@ -4,6 +4,21 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
+st.set_page_config(layout="wide", page_title="Option Portfolio Analyzer")
+
+# Hide Streamlit branding and make full screen
+st.markdown("""
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        .block-container {
+            padding-top: 1rem;
+            padding-bottom: 0rem;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
 class Option:
     def __init__(
         self,
@@ -26,7 +41,6 @@ class Option:
         self._validate_inputs()
 
     def _validate_inputs(self):
-
         if self.option_type not in ['call', 'put']:
             raise ValueError("option_type must be 'call' or 'put'")
         if self.strike <= 0:
@@ -45,69 +59,99 @@ class Option:
             payoff = np.maximum(self.strike - spot_prices, 0)
         
         return payoff * self.quantity
-            
-class Bond:
-    def __init__(
-        self,
-        face_value: float = 1000,
-        quantity: int = 1
-    ):
+    
+class Debt:
+    def __init__(self, face_value: float):
         self.face_value = face_value
-        self.quantity = quantity
+        self.strike = face_value  # For dynamic range calculation
 
     def payoff(self, spot_prices):
-        return np.full_like(spot_prices, self.face_value * self.quantity)
+        return np.full_like(spot_prices, self.face_value)
+
+# Initialize session state for portfolio
+if 'portfolio' not in st.session_state:
+    st.session_state.portfolio = []
 
 st.title("Option Portfolio Payoff Diagram")
 
-assets = []
-payoffs = []
+# Create two columns - main content and right panel
+col1, col2 = st.columns([3, 1])
 
-assets.append(Option('call', strike=30, quantity=1))
-assets.append(Option('put', strike=30, quantity=-1))
-assets.append(Option('call', strike=20, quantity=-1))
+with col2:
+    with st.expander("➕ Add Assets", expanded=True):
+        asset_type = st.selectbox("Asset Type", ["Option", "Debt"])
+        
+        if asset_type == "Option":
+            option_type = st.selectbox("Option Type", ["call", "put"])
+            strike = st.number_input("Strike Price", value=30.0, step=1.0)
+            quantity = st.number_input("Quantity", value=1, step=1)
+            
+            if st.button("Add Option", use_container_width=True):
+                new_option = Option(option_type, strike=strike, quantity=quantity)
+                st.session_state.portfolio.append(new_option)
+                st.rerun()
+        
+        elif asset_type == "Debt":
+            face_value = st.number_input("Face Value", value=-10.0, step=1.0)
+            
+            if st.button("Add Debt", use_container_width=True):
+                new_debt = Debt(face_value=face_value)
+                st.session_state.portfolio.append(new_debt)
+                st.rerun()
 
-# Get all strikes and create dynamic range
-strikes = [asset.strike for asset in assets]
-min_strike = min(strikes)
-max_strike = max(strikes)
-spot_range = np.linspace(min_strike * 0.5, max_strike * 1.5, 100)
+with col1:
+    # Get all strikes and create dynamic range
+    # strikes = [asset.strike for asset in st.session_state.portfolio if hasattr(asset, 'strike')]
+    
+    # if strikes:
+    #     min_strike = min(strikes)
+    #     max_strike = max(strikes)
+    #     spot_range = np.linspace(min_strike * 0.5, max_strike * 1.5, 100)
+    # else:
+        # spot_range = np.linspace(0, 50, 100)
 
-# Initialize total_payoff
-total_payoff = np.zeros_like(spot_range)
-
-# Calculate payoffs
-for i, asset in enumerate(assets):
-    payoff = asset.payoff(spot_range)
-    payoffs.append(payoff)
-    total_payoff += payoff
-
-# Create plotly figure
-fig = go.Figure()
-
-# Add total payoff line
-fig.add_trace(go.Scatter(
-    x=spot_range,
-    y=total_payoff,
-    mode='lines',
-    name='Total Payoff',
-    line=dict(color='#ff4b4b', width=3)
-))
-
-# Update layout for dark mode
-fig.update_layout(
-    title="Option Portfolio Payoff Diagram",
-    xaxis_title="Spot Price",
-    yaxis_title="Payoff ($)",
-    xaxis=dict(range=[min_strike * 0.5, max_strike * 1.5], dtick=5, gridcolor='rgba(128,128,128,0.2)'),
-    yaxis=dict(range=[-50, 50], dtick=5, gridcolor='rgba(128,128,128,0.2)'),
-    plot_bgcolor='#0e1117',
-    paper_bgcolor='#0e1117',
-    font=dict(color='white'),
-    hovermode='x unified'
-)
-
-# Add zero line
-fig.add_hline(y=0, line_color='gray', line_width=1, opacity=0.5)
-
-st.plotly_chart(fig, use_container_width=True)
+    # Fixed range
+    spot_range = np.linspace(0, 50, 10)
+    
+    # Calculate payoffs
+    payoffs = []
+    total_payoff = np.zeros_like(spot_range)
+    
+    for asset in st.session_state.portfolio:
+        payoff = asset.payoff(spot_range)
+        payoffs.append(payoff)
+        total_payoff += payoff
+    
+    # Create plotly figure
+    fig = go.Figure()
+    
+    # Add total payoff line
+    fig.add_trace(go.Scatter(
+        x=spot_range,
+        y=total_payoff,
+        mode='lines',
+        name='Total Payoff',
+        line=dict(color='#ff4b4b', width=3)
+    ))
+    
+    # Update layout for dark mode
+    y_min = min(total_payoff) * 1.2 if min(total_payoff) < 0 else -25
+    y_max = max(total_payoff) * 1.2 if max(total_payoff) > 0 else 25
+    
+    fig.update_layout(
+        title="Option Portfolio Payoff Diagram",
+        height=600,
+        xaxis_title="Spot Price",
+        yaxis_title="Payoff ($)",
+        xaxis=dict(range=[spot_range[0], spot_range[-1]], dtick=5, gridcolor='rgba(128,128,128,0.2)'),
+        yaxis=dict(range=[y_min, y_max], dtick=5, gridcolor='rgba(128,128,128,0.2)'),
+        plot_bgcolor='#0e1117',
+        paper_bgcolor='#0e1117',
+        font=dict(color='white'),
+        hovermode='x unified'
+    )
+    
+    # Add zero line
+    fig.add_hline(y=0, line_color='gray', line_width=1, opacity=0.5)
+    
+    st.plotly_chart(fig, use_container_width=True)
