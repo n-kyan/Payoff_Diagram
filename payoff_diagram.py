@@ -4,8 +4,7 @@ from typing import Literal, Union, List
 import streamlit as st
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
+import plotly.graph_objects as go
 
 class Option:
     def __init__(
@@ -104,27 +103,32 @@ df = pd.DataFrame({
 })
 df = df.set_index('Spot Price')
 
-fig, ax = plt.subplots(figsize=(10, 6), facecolor='#0e1117')  # Streamlit dark bg
-ax.set_facecolor('#0e1117')
+# Create plotly figure
+fig = go.Figure()
 
-ax.plot(spot_range, total_payoff, label='Total Payoff', linewidth=3, color='#ff4b4b')
+# Add total payoff line
+fig.add_trace(go.Scatter(
+    x=spot_range,
+    y=total_payoff,
+    mode='lines',
+    name='Total Payoff',
+    line=dict(color='#ff4b4b', width=3)
+))
 
-# Set axis limits and intervals
-ax.set_xlim(0, 50)
-ax.set_ylim(-50, 50)
-ax.xaxis.set_major_locator(MultipleLocator(5))
-ax.yaxis.set_major_locator(MultipleLocator(5))
+# Update layout for dark mode
+fig.update_layout(
+    title="Option Portfolio Payoff Diagram",
+    xaxis_title="Spot Price",
+    yaxis_title="Payoff ($)",
+    xaxis=dict(range=[0, 50], dtick=5, gridcolor='rgba(128,128,128,0.2)'),
+    yaxis=dict(range=[-50, 50], dtick=5, gridcolor='rgba(128,128,128,0.2)'),
+    plot_bgcolor='#0e1117',
+    paper_bgcolor='#0e1117',
+    font=dict(color='white'),
+    hovermode='x unified'
+)
 
-# Dark mode styling
-ax.set_xlabel('Spot Price', fontsize=12, color='white')
-ax.set_ylabel('Payoff ($)', fontsize=12, color='white')
-ax.tick_params(colors='white')  # White tick labels
-ax.axhline(y=0, color='gray', linestyle='-', linewidth=1, alpha=0.5)
-ax.legend(fontsize=10, facecolor='#262730', edgecolor='gray', labelcolor='white')
-ax.grid(True, alpha=0.15, linewidth=1, color='white')
-ax.spines['bottom'].set_color('gray')
-ax.spines['top'].set_color('gray')
-ax.spines['left'].set_color('gray')
-ax.spines['right'].set_color('gray')
+# Add zero line
+fig.add_hline(y=0, line_color='gray', line_width=1, opacity=0.5)
 
-st.pyplot(fig)
+st.plotly_chart(fig, use_container_width=True)
