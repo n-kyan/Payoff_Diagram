@@ -72,100 +72,15 @@ class Debt:
 if 'portfolio' not in st.session_state:
     st.session_state.portfolio = []
 
-# st.title("Option Portfolio Payoff Diagram")
-
-# # Create two columns - main content and right panel
-# col1, col2 = st.columns([3, 1])
-
-# with col2:
-#     with st.expander("➕ Add Assets", expanded=True):
-#         asset_type = st.selectbox("Asset Type", ["Option", "Debt"])
-        
-#         if asset_type == "Option":
-#             option_type = st.selectbox("Option Type", ["call", "put"])
-#             strike = st.number_input("Strike Price", value=30.0, step=1.0)
-#             quantity = st.number_input("Quantity", value=1, step=1)
-            
-#             if st.button("Add Option", use_container_width=True):
-#                 new_option = Option(option_type, strike=strike, quantity=quantity)
-#                 st.session_state.portfolio.append(new_option)
-#                 st.rerun()
-        
-#         elif asset_type == "Debt":
-#             face_value = st.number_input("Face Value", value=-10.0, step=1.0)
-            
-#             if st.button("Add Debt", use_container_width=True):
-#                 new_debt = Debt(face_value=face_value)
-#                 st.session_state.portfolio.append(new_debt)
-#                 st.rerun()
-
-# with col1:
-#     # Get all strikes and create dynamic range
-#     # strikes = [asset.strike for asset in st.session_state.portfolio if hasattr(asset, 'strike')]
-    
-#     # if strikes:
-#     #     min_strike = min(strikes)
-#     #     max_strike = max(strikes)
-#     #     spot_range = np.linspace(min_strike * 0.5, max_strike * 1.5, 100)
-#     # else:
-#         # spot_range = np.linspace(0, 50, 100)
-
-#     # Fixed range
-#     spot_range = np.linspace(0, 50, 10)
-    
-#     # Calculate payoffs
-#     payoffs = []
-#     total_payoff = np.zeros_like(spot_range)
-    
-#     for asset in st.session_state.portfolio:
-#         payoff = asset.payoff(spot_range)
-#         payoffs.append(payoff)
-#         total_payoff += payoff
-    
-#     # Create plotly figure
-#     fig = go.Figure()
-    
-#     # Add total payoff line
-#     fig.add_trace(go.Scatter(
-#         x=spot_range,
-#         y=total_payoff,
-#         mode='lines',
-#         name='Total Payoff',
-#         line=dict(color='#ff4b4b', width=3)
-#     ))
-    
-#     # Update layout for dark mode
-#     y_min = min(total_payoff) * 1.2 if min(total_payoff) < 0 else -25
-#     y_max = max(total_payoff) * 1.2 if max(total_payoff) > 0 else 25
-    
-#     fig.update_layout(
-#         title="Option Portfolio Payoff Diagram",
-#         height=600,
-#         xaxis_title="Spot Price",
-#         yaxis_title="Payoff ($)",
-#         xaxis=dict(range=[spot_range[0], spot_range[-1]], dtick=5, gridcolor='rgba(128,128,128,0.2)'),
-#         yaxis=dict(range=[y_min, y_max], dtick=5, gridcolor='rgba(128,128,128,0.2)'),
-#         plot_bgcolor='#0e1117',
-#         paper_bgcolor='#0e1117',
-#         font=dict(color='white'),
-#         hovermode='x unified'
-#     )
-    
-#     # Add zero line
-#     fig.add_hline(y=0, line_color='gray', line_width=1, opacity=0.5)
-    
-#     st.plotly_chart(fig, use_container_width=True)
-
-
-
-
-
-
 
 st.title("Option Portfolio Analyzer")
 
 # Create tabs
-tab1, tab2 = st.tabs(["📈 Payoff Diagram", "📊 Portfolio Details"])
+tab1, tab2, tab3 = st.tabs([
+    "📈 Payoff Diagram",
+    "📊 Portfolio Details",
+    "PnL Distribution"
+    ])
 
 with tab1:
     # Create two columns - main content and right panel
@@ -301,3 +216,29 @@ with tab2:
         
     else:
         st.info("No assets in portfolio yet")
+
+with tab3:
+    st.header("PnL Distribution") 
+    
+    # Sidebar inputs for simulation
+    st.sidebar.subheader("PnL Distribution Settings")
+    num_simulations = st.sidebar.number_input("Number of Simulations", 
+                                               min_value=100, 
+                                               max_value=100000, 
+                                               value=10000, 
+                                               step=1000)
+    
+    # Market parameters
+    spot = st.sidebar.number_input("Spot Price", value=100.0, step=1.0)
+    expected_drift = st.sidebar.number_input("Expected Drift (μ)", value=0.05, step=0.01, format="%.2f")
+    volatility = st.sidebar.number_input("Volatility (σ)", value=0.20, step=0.01, format="%.2f")
+    time_horizon = st.sidebar.number_input("Time Horizon (years)", value=1.0, step=0.1, format="%.2f")
+    
+    st.write("### Simulation Parameters")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Spot Price", f"${spot:.2f}")
+        st.metric("Expected Drift", f"{expected_drift*100:.1f}%")
+    with col2:
+        st.metric("Volatility", f"{volatility*100:.1f}%")
+        st.metric("Simulations", f"{num_simulations:,}")
