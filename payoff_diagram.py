@@ -4,7 +4,8 @@ from typing import Literal, Union, List
 import streamlit as st
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 
 class Option:
     def __init__(
