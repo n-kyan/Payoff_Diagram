@@ -1,5 +1,3 @@
-from cProfile import label
-from turtle import width
 from typing import Literal, Union, List
 import streamlit as st
 import numpy as np
@@ -47,7 +45,7 @@ class Option:
             payoff = np.maximum(self.strike - spot_prices, 0)
         
         return payoff * self.quantity
-    
+            
 class Bond:
     def __init__(
         self,
@@ -59,49 +57,30 @@ class Bond:
 
     def payoff(self, spot_prices):
         return np.full_like(spot_prices, self.face_value * self.quantity)
-            
-
-class Payoff_Diagram:
-    def __init__(
-        self,
-        portfolio: List,
-    ):
-        self.portfolio = portfolio
 
 st.title("Option Portfolio Payoff Diagram")
 
-spot_range = np.linspace(0, 50, 11)
-
-portfolio = []
+assets = []
 payoffs = []
 
+assets.append(Option('call', strike=30, quantity=1))
+assets.append(Option('put', strike=30, quantity=-1))
+assets.append(Option('call', strike=20, quantity=-1))
 
+# Get all strikes and create dynamic range
+strikes = [asset.strike for asset in assets]
+min_strike = min(strikes)
+max_strike = max(strikes)
+spot_range = np.linspace(min_strike * 0.5, max_strike * 1.5, 100)
 
-
-portfolio.append(Bond(-10))
-portfolio.append(Option('put', strike=30, quantity=1))
-portfolio.append(Option('call', strike=30, quantity=-1))
-portfolio.append(Option('call', strike=20, quantity=-1))
-
-
-
-
-
-# initialize total_payoff
+# Initialize total_payoff
 total_payoff = np.zeros_like(spot_range)
 
-for i, asset in enumerate(portfolio):
+# Calculate payoffs
+for i, asset in enumerate(assets):
     payoff = asset.payoff(spot_range)
     payoffs.append(payoff)
-    total_payoff += payoffs[i]
-
-df = pd.DataFrame({
-    'Spot Price': spot_range,
-    # 'Option 1': payoff1,
-    # 'Option 2': payoff2,
-    'Total Payoff': total_payoff
-})
-df = df.set_index('Spot Price')
+    total_payoff += payoff
 
 # Create plotly figure
 fig = go.Figure()
@@ -120,7 +99,7 @@ fig.update_layout(
     title="Option Portfolio Payoff Diagram",
     xaxis_title="Spot Price",
     yaxis_title="Payoff ($)",
-    xaxis=dict(range=[0, 50], dtick=5, gridcolor='rgba(128,128,128,0.2)'),
+    xaxis=dict(range=[min_strike * 0.5, max_strike * 1.5], dtick=5, gridcolor='rgba(128,128,128,0.2)'),
     yaxis=dict(range=[-50, 50], dtick=5, gridcolor='rgba(128,128,128,0.2)'),
     plot_bgcolor='#0e1117',
     paper_bgcolor='#0e1117',
