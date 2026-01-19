@@ -1,12 +1,9 @@
 import streamlit as st
-from styling import apply_page_config
+if 'portfolio' not in st.session_state: st.session_state.portfolio = []
 
-apply_page_config("PnL Distribution", "📉")
 
-if 'portfolio' not in st.session_state:
-    st.session_state.portfolio = []
 
-st.title("📉 PnL Distribution Analysis")
+st.title("PnL Distribution Analysis")
 
 # Main area + settings column
 main_col, settings_col = st.columns([3, 1])

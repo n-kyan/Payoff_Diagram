@@ -47,3 +47,16 @@ class Debt:
 
     def payoff(self, spot_prices):
         return np.full_like(spot_prices, self.face_value)
+    
+def simulate_terminal_prices(spot: float, expected_drift: float, volatility: float, time_horizon: float, num_simulations: int) -> np.ndarray:
+    
+    # Step 1: Sample ε from standard normal N(0,1)
+    epsilon = np.random.standard_normal(num_simulations)
+    
+    # Step 2: Calculate the exponent: (μ - σ²/2)T + σε√T
+    exponent = (expected_drift - 0.5 * volatility**2) * time_horizon + volatility * epsilon * np.sqrt(time_horizon)
+    
+    # Step 3: Calculate S_T = S₀ · exp[exponent]
+    terminal_prices = spot * np.exp(exponent)
+    
+    return terminal_prices
