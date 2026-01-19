@@ -97,3 +97,4 @@ with col2:
     if uploaded_file is not None:
         # TODO: Implement CSV parsing
         st.info("CSV upload functionality coming soon!")
+

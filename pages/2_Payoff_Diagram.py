@@ -58,3 +58,4 @@ if len(st.session_state.portfolio) > 0:
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.info("No portfolio loaded.")
+
