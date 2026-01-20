@@ -41,7 +41,7 @@ if len(st.session_state.portfolio) > 0:
         title="Portfolio Payoff Diagram",
         height=600,
         xaxis_title="Spot Price",
-        yaxis_title="Payoff ($)",
+        yaxis_title="Payoff",
         xaxis=dict(range=[spot_range[0], spot_range[1]], gridcolor='rgba(128,128,128,0.2)',
         dtick=1,
         showgrid=True),

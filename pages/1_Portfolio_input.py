@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from styling import apply_page_config
-from utils import Option, Debt
+from utils import Forward, Option, Debt
 
 if 'portfolio' not in st.session_state:
     st.session_state.portfolio = []
@@ -47,6 +47,19 @@ with col1:
                     'Volatility': '-',
                     'Face Value': asset.face_value
                 })
+            elif type(asset).__name__ == 'Forward':
+                portfolio_data.append({
+                    'ID': i,
+                    'Type': 'Forward',
+                    'Call/Put': '-',
+                    'Strike': asset.strike,
+                    'Quantity': asset.quantity,
+                    'Spot': '-',
+                    'Maturity': '-',
+                    'RFR': '-',
+                    'Volatility': '-',
+                    'Face Value': '-'
+                })
         
         df_portfolio = pd.DataFrame(portfolio_data)
         st.dataframe(df_portfolio, use_container_width=True, hide_index=True)
@@ -64,7 +77,7 @@ with col2:
     st.write("**Manual Entry**")
     asset_type = st.pills(
         "Asset Type", 
-        ["Option", "Debt"],
+        ["Option", "Debt", "Forward"],
         default="Option"  # Set default selection
     )
 
@@ -89,6 +102,16 @@ with col2:
             new_debt = Debt(face_value=face_value)
             st.session_state.portfolio.append(new_debt)
             st.rerun()
+
+    elif asset_type == "Forward":
+        strike = st.number_input("Strike Price", value=100, step=5)
+        quantity = st.number_input("Quantity", value=1, step=1)
+
+        if st.button("Add Forward", use_container_width=True):
+            new_forward = Forward(strike=strike, quantity=quantity)
+            st.session_state.portfolio.append(new_forward)
+            st.rerun()
+
 
     st.divider()
 

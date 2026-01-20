@@ -43,10 +43,28 @@ class Option:
 class Debt:
     def __init__(self, face_value: float):
         self.face_value = face_value
-        self.strike = face_value  # For dynamic range calculation
+        self.strike = face_value
 
     def payoff(self, spot_prices):
         return np.full_like(spot_prices, self.face_value)
+    
+class Forward:
+    def __init__(
+        self,
+        strike: float,
+        quantity: int = 1
+    ):
+        self.strike = strike
+        self.quantity = quantity
+        self._validate_inputs()
+    
+    def _validate_inputs(self):
+        if self.strike <= 0:
+            raise ValueError("Strike must be positive")
+    
+    def payoff(self, spot_prices):
+        return (spot_prices - self.strike) * self.quantity
+
     
 def simulate_terminal_prices(spot: float, expected_drift: float, volatility: float, time_horizon: float, num_simulations: int) -> np.ndarray:
     
