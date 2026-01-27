@@ -11,7 +11,7 @@ st.write("### Pages")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.page_link("pages/1_Portfolio_Input.py", label="**Portfolio Input**", icon="🔗")
+    # st.page_link("pages/1_Portfolio_Input.py", label="**Portfolio Input**", icon="🔗")
     st.write("Build and manage your option portfolio")
 
 with col2:
