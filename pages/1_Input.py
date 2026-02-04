@@ -95,16 +95,11 @@ with col2:
             st.session_state.portfolio.append(new_option)
             st.rerun()
 
-    # In the "Add Debt" section, replace with:
     elif asset_type == "Debt":
         face_value = st.number_input("Face Value", value=-10.0, step=5.0)
         
         if st.button("Add Debt", use_container_width=True):
-            new_debt = Debt(
-                face_value=face_value,
-                maturity=1.0,  # Add default maturity
-                rfr=0.05       # Add default rfr
-            )
+            new_debt = Debt(face_value=face_value)
             st.session_state.portfolio.append(new_debt)
             st.rerun()
 
@@ -113,13 +108,7 @@ with col2:
         quantity = st.number_input("Quantity", value=1, step=1)
 
         if st.button("Add Forward", use_container_width=True):
-            new_forward = Forward(
-                strike=strike,
-                spot=100.0,     # Add default spot
-                maturity=1.0,   # Add default maturity
-                rfr=0.05,       # Add default rfr
-                quantity=quantity
-            )
+            new_forward = Forward(strike=strike, quantity=quantity)
             st.session_state.portfolio.append(new_forward)
             st.rerun()
 
